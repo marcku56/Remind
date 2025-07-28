@@ -1,0 +1,514 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Кастомный Опросник Dark</title>
+<style>
+  /* Цвета */
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 20px;
+    user-select: none;
+  }
+  h1 {
+    text-align: center;
+    font-weight: 700;
+    font-size: 2.2em;
+    margin-bottom: 10px;
+    cursor: text;
+  }
+  #cover {
+    display: block;
+    max-width: 100%;
+    max-height: 250px;
+    margin: 10px auto 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px #ff0000aa;
+  }
+  input, textarea, select, button {
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    margin: 5px 0;
+    box-sizing: border-box;
+    font-weight: 600;
+  }
+  input, textarea, select {
+    padding: 10px;
+    width: 100%;
+    background: #111;
+    color: #fff;
+    border: 1.5px solid #ff0000;
+    transition: border-color 0.3s ease;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: #ff4444;
+  }
+  button {
+    background: #ff0000;
+    color: white;
+    cursor: pointer;
+    padding: 12px 20px;
+    width: 100%;
+    margin-top: 10px;
+    font-weight: 700;
+    box-shadow: 0 5px #aa0000;
+    transition: background-color 0.25s ease, transform 0.1s ease;
+    user-select: none;
+  }
+  button:active {
+    background-color: #cc0000;
+    transform: translateY(4px);
+    box-shadow: 0 1px #660000;
+  }
+  #optionsList {
+    margin-top: 15px;
+  }
+  .option {
+    background: #111;
+    border: 2px solid #ff0000;
+    margin: 8px 0;
+    border-radius: 10px;
+    padding: 14px 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    user-select: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .option:hover {
+    background: #330000;
+    box-shadow: 0 0 15px #ff0000bb;
+  }
+  .option.selected {
+    background: #ff0000;
+    color: #fff;
+    box-shadow: 0 0 25px #ff4444;
+  }
+  .remove-btn, .video-btn {
+    background: #880000;
+    border: none;
+    color: white;
+    padding: 5px 11px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-left: 10px;
+  }
+  .remove-btn:hover, .video-btn:hover {
+    background: #cc0000;
+  }
+  #results {
+    margin-top: 25px;
+    font-size: 1.1em;
+    font-weight: 600;
+  }
+  #results div {
+    margin-bottom: 8px;
+  }
+  .video-popup {
+    position: fixed; 
+    top: 50%; left: 50%; 
+    transform: translate(-50%, -50%);
+    background: #000;
+    padding: 6px;
+    border-radius: 12px;
+    display: none;
+    z-index: 9999;
+    box-shadow: 0 0 25px #ff0000aa;
+  }
+  .video-popup iframe {
+    width: 320px;
+    height: 180px;
+    border-radius: 12px;
+  }
+  .close-btn {
+    position: absolute;
+    top: 8px; right: 10px;
+    background: #cc0000;
+    border: none;
+    color: white;
+    font-size: 20px;
+    font-weight: 900;
+    padding: 0 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .close-btn:hover {
+    background: #ff4444;
+  }
+  #controlPanel {
+    display: flex; 
+    justify-content: center; 
+    gap: 14px; 
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  #controlPanel button {
+    max-width: 160px;
+  }
+  #importExport {
+    margin-top: 15px;
+    display: none;
+  }
+  #jsonArea {
+    width: 100%; 
+    height: 110px; 
+    font-family: monospace;
+    background: #111; 
+    border: 1.5px solid #ff0000; 
+    color: white;
+    border-radius: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+    resize: vertical;
+  }
+  #roundSelector {
+    margin-bottom: 15px;
+    max-width: 250px;
+    background: #111;
+    border: 1.5px solid #ff0000;
+    color: white;
+  }
+  #roundLabel {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<h1 contenteditable="true" id="pollTitle" spellcheck="false" aria-label="Заголовок опроса">Заголовок опроса (кликни и измени)</h1>
+
+<input type="text" id="coverUrl" placeholder="URL обложки (картинки)" aria-label="URL обложки" />
+<button onclick="loadCover()">Загрузить обложку</button>
+<img id="cover" src="" alt="Обложка опроса" />
+
+<label id="roundLabel" for="roundSelector">Выберите количество вариантов в раунде:</label>
+<select id="roundSelector" aria-label="Выбор количества вариантов в раунде">
+  <option value="2">2 варианта</option>
+  <option value="4" selected>4 варианта</option>
+  <option value="6">6 вариантов</option>
+</select>
+
+<div>
+  <textarea id="newOption" placeholder="Добавь вариант (текст или ссылка YouTube)" aria-label="Добавление нового варианта"></textarea>
+  <button onclick="addOption()">Добавить вариант</button>
+</div>
+
+<div id="optionsList" aria-live="polite" aria-atomic="true" role="list"></div>
+
+<button onclick="vote()" id="voteBtn">Голосовать</button>
+
+<div id="results" aria-live="polite" aria-atomic="true"></div>
+
+<div id="controlPanel">
+  <button onclick="exportPoll()">Экспорт в JSON</button>
+  <button onclick="importPoll()">Импорт из JSON</button>
+  <button onclick="resetPoll()">Сбросить всё</button>
+</div>
+
+<div id="importExport" aria-label="Импорт/Экспорт JSON">
+  <textarea id="jsonArea" placeholder="Вставьте JSON сюда"></textarea>
+  <button onclick="loadFromJson()">Загрузить опрос из JSON</button>
+  <button onclick="hideImport()">Отмена</button>
+</div>
+
+<div class="video-popup" id="videoPopup" role="dialog" aria-modal="true" aria-label="Видео проигрыватель">
+  <button class="close-btn" onclick="closeVideo()" aria-label="Закрыть видео">×</button>
+  <iframe id="videoFrame" src="" frameborder="0" allowfullscreen></iframe>
+</div>
+
+<script>
+  let options = [];
+  let votes = [];
+  let voted = false;
+
+  // Загрузить данные из LocalStorage
+  window.onload = () => {
+    const saved = localStorage.getItem('pollData');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.title) document.getElementById('pollTitle').textContent = data.title;
+        if (data.cover) {
+          document.getElementById('cover').src = data.cover;
+          document.getElementById('coverUrl').value = data.cover;
+        }
+        if (data.options && data.votes && data.options.length === data.votes.length) {
+          options = data.options;
+          votes = data.votes;
+        } else {
+          options = [];
+          votes = [];
+        }
+        voted = data.voted || false;
+        renderOptions();
+        if (voted) showResults();
+      } catch(e) {
+        console.error('Ошибка загрузки данных', e);
+      }
+    }
+    // При загрузке обновляем селектор раунда
+    updateRoundSelector();
+  };
+
+  // Сохраняем данные в LocalStorage
+  function saveData() {
+    const data = {
+      title: document.getElementById('pollTitle').textContent.trim(),
+      cover: document.getElementById('cover').src || '',
+      options: options,
+      votes: votes,
+      voted: voted
+    };
+    localStorage.setItem('pollData', JSON.stringify(data));
+  }
+
+  function loadCover() {
+    const url = document.getElementById('coverUrl').value.trim();
+    if (url) {
+      document.getElementById('cover').src = url;
+      saveData();
+    }
+  }
+
+  // Кол-во вариантов за раунд -- берём из селектора
+  function getRoundSize() {
+    const sel = document.getElementById('roundSelector');
+    return parseInt(sel.value) || 4;
+  }
+
+  // Обновляем UI под текущий раунд (группируем варианты)
+  function renderOptions() {
+    const list = document.getElementById('optionsList');
+    list.innerHTML = '';
+    const roundSize = getRoundSize();
+
+    for (let i = 0; i < options.length; i += roundSize) {
+      const group = options.slice(i, i + roundSize);
+      const groupVotes = votes.slice(i, i + roundSize);
+      
+      const groupDiv = document.createElement('div');
+      groupDiv.style.marginBottom = '25px';
+      groupDiv.style.borderBottom = '1px solid #ff0000';
+      groupDiv.style.paddingBottom = '10px';
+
+      const roundHeader = document.createElement('h3');
+      roundHeader.textContent = `Раунд ${Math.floor(i / roundSize) + 1}`;
+      roundHeader.style.textAlign = 'center';
+      roundHeader.style.marginBottom = '12px';
+      groupDiv.appendChild(roundHeader);
+
+      group.forEach((opt, idx) => {
+        const globalIndex = i + idx;
+        const div = document.createElement('div');
+        div.className = 'option';
+        div.dataset.index = globalIndex;
+
+        const ytMatch = opt.match(/(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/[^\s]+/);
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = opt;
+
+        div.appendChild(textSpan);
+
+        const controls = document.createElement('div');
+        controls.style.display = 'flex';
+        controls.style.alignItems = 'center';
+
+        if (ytMatch) {
+          const videoBtn = document.createElement('button');
+          videoBtn.className = 'video-btn';
+          videoBtn.textContent = '▶ Видео';
+          videoBtn.onclick = (e) => {
+            e.stopPropagation();
+            playVideo(opt);
+          };
+          controls.appendChild(videoBtn);
+        }
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.textContent = '×';
+        removeBtn.onclick = (e) => {
+          e.stopPropagation();
+          removeOption(globalIndex);
+        };
+        controls.appendChild(removeBtn);
+
+        div.appendChild(controls);
+
+        div.onclick = () => {
+          if (voted) return;
+          // Убираем выделение вариантов в этом раунде
+          const siblingOptions = groupDiv.querySelectorAll('.option');
+          siblingOptions.forEach(el => el.classList.remove('selected'));
+          div.classList.add('selected');
+          div.dataset.selected = 'true';
+        };
+
+        // Отметим если выбран
+        if (div.classList.contains('selected')) div.classList.remove('selected');
+
+        groupDiv.appendChild(div);
+      });
+
+      list.appendChild(groupDiv);
+    }
+  }
+
+  function removeOption(i) {
+    options.splice(i, 1);
+    votes.splice(i, 1);
+    voted = false;
+    renderOptions();
+    clearResults();
+    saveData();
+  }
+
+  function addOption() {
+    const val = document.getElementById('newOption').value.trim();
+    if (!val) return alert('Введите вариант');
+    options.push(val);
+    votes.push(0);
+    document.getElementById('newOption').value = '';
+    voted = false;
+    renderOptions();
+    clearResults();
+    saveData();
+  }
+
+  function playVideo(url) {
+    const videoId = extractYouTubeId(url);
+    if (!videoId) return alert('Неверная ссылка YouTube');
+    const iframe = document.getElementById('videoFrame');
+    iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1';
+    document.getElementById('videoPopup').style.display = 'block';
+  }
+
+  function closeVideo() {
+    const iframe = document.getElementById('videoFrame');
+    iframe.src = '';
+    document.getElementById('videoPopup').style.display = 'none';
+  }
+
+  function extractYouTubeId(url) {
+    let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    let match = url.match(regExp);
+    if (match && match[2].length == 11) {
+      return match[2];
+    } else {
+      return null;
+    }
+  }
+
+  function vote() {
+    if (voted) return alert('Вы уже голосовали!');
+
+    const roundSize = getRoundSize();
+    const list = document.getElementById('optionsList');
+
+    let allSelectedIndexes = [];
+
+    // Проверяем выбран ли ровно 1 вариант в каждом раунде
+    for (let i = 0; i < options.length; i += roundSize) {
+      const groupDiv = list.children[Math.floor(i / roundSize)];
+      const selected = groupDiv.querySelector('.option.selected');
+      if (!selected) {
+        alert(`Выберите вариант в раунде ${Math.floor(i / roundSize) + 1}`);
+        return;
+      }
+      allSelectedIndexes.push(+selected.dataset.index);
+    }
+
+    // Увеличиваем голоса для выбранных вариантов
+    allSelectedIndexes.forEach(idx => votes[idx]++);
+
+    voted = true;
+    saveData();
+    showResults();
+  }
+
+  function showResults() {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '<h2>Результаты</h2>';
+    const roundSize = getRoundSize();
+
+    for (let i = 0; i < options.length; i += roundSize) {
+      const group = options.slice(i, i + roundSize);
+      const groupVotes = votes.slice(i, i + roundSize);
+      const total = groupVotes.reduce((a,b) => a+b, 0);
+
+      const roundRes = document.createElement('div');
+      roundRes.style.marginBottom = '18px';
+      roundRes.style.borderBottom = '1px solid #ff0000';
+      roundRes.style.paddingBottom = '10px';
+
+      const roundHeader = document.createElement('h3');
+      roundHeader.textContent = `Раунд ${Math.floor(i / roundSize) + 1}`;
+      roundHeader.style.marginBottom = '10px';
+      roundRes.appendChild(roundHeader);
+
+      group.forEach((opt, idx) => {
+        const votesCount = groupVotes[idx];
+        const percent = total ? ((votesCount / total) * 100).toFixed(1) : 0;
+        const resLine = document.createElement('div');
+        resLine.textContent = `${opt}: ${votesCount} голосов (${percent}%)`;
+        roundRes.appendChild(resLine);
+      });
+
+      resultsDiv.appendChild(roundRes);
+    }
+  }
+
+  function clearResults() {
+    document.getElementById('results').innerHTML = '';
+  }
+
+  function exportPoll() {
+    const data = {
+      title: document.getElementById('pollTitle').textContent.trim(),
+      cover: document.getElementById('cover').src || '',
+      options: options,
+      votes: votes,
+      voted: voted
+    };
+    const jsonStr = JSON.stringify(data, null, 2);
+    document.getElementById('jsonArea').value = jsonStr;
+    document.getElementById('importExport').style.display = 'block';
+  }
+
+  function importPoll() {
+    document.getElementById('jsonArea').value = '';
+    document.getElementById('importExport').style.display = 'block';
+  }
+
+  function hideImport() {
+    document.getElementById('importExport').style.display = 'none';
+  }
+
+  function loadFromJson() {
+    const jsonStr = document.getElementById('jsonArea').value.trim();
+    if (!jsonStr) return alert('Вставьте JSON');
+    try {
+      const data = JSON.parse(jsonStr);
+      if (!data.title || !data.options || !Array.isArray(data.options)) {
+        return alert('Неверный формат JSON');
+      }
+      options = data.options;
+      votes = data.votes && data.votes.length === options.length ? data.votes : options.map(_ => 0);
+      voted = data.voted || false;
+      document.getElementById('pollTitle').textContent = data.title;
+      if (data.cover) {
+        document
