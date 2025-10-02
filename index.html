@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>MY HOUSE</title>
+    <!-- Подключаем шрифт Flowing Script -->
+    <link href="https://fonts.googleapis.com/css2?family=Flowing+Script&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: black;
+        }
+
+        h1 {
+            font-family: 'Flowing Script', cursive;
+            font-size: 60px;
+            color: black;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h1 span.emoji {
+            display: inline-block;
+            transition: transform 0.5s;
+            cursor: pointer;
+        }
+
+        h1 span.emoji:hover {
+            transform: rotate(360deg);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 20px 30px;
+            font-size: 20px;
+            border-radius: 12px;
+            border: 2px solid black; /* черная рамка */
+            background-color: white;
+            color: black;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+            background-color: #f0f0f0;
+        }
+
+        .section {
+            display: none;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 15px;
+            color: black;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        input[type="text"], input[type="number"], select {
+            padding: 5px;
+            font-size: 16px;
+            margin: 5px 0;
+            width: 90%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 60px);
+            grid-gap: 5px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .calc-grid button {
+            padding: 10px;
+            font-size: 18px;
+            border: 2px solid black;
+            background-color: white;
+            color: black;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .calc-grid button:hover {
+            transform: scale(1.1);
+            background-color: #f0f0f0;
+        }
+
+        .time-display {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>
+        MY 
+        <span class="emoji">🎮</span> 
+        HOUSE
+    </h1>
+
+    <div class="buttons">
+        <button onclick="showSection('calculator')">🧮 Калькулятор</button>
+        <button onclick="showSection('guess')">🎲 Угадай число</button>
+        <button onclick="showSection('password')">🔑 Генератор пароля</button>
+        <button onclick="showSection('clock')">⏰ Часы</button>
+    </div>
+
+    <!-- Калькулятор -->
+    <div class="section" id="calculator">
+        <input type="text" id="calc-display" readonly>
+        <div class="calc-grid">
+            <button onclick="calcPress('7')">7</button>
+            <button onclick="calcPress('8')">8</button>
+            <button onclick="calcPress('9')">9</button>
+            <button onclick="calcPress('/')">/</button>
+
+            <button onclick="calcPress('4')">4</button>
+            <button onclick="calcPress('5')">5</button>
+            <button onclick="calcPress('6')">6</button>
+            <button onclick="calcPress('*')">*</button>
+
+            <button onclick="calcPress('1')">1</button>
+            <button onclick="calcPress('2')">2</button>
+            <button onclick="calcPress('3')">3</button>
+            <button onclick="calcPress('-')">-</button>
+
+            <button onclick="calcPress('0')">0</button>
+            <button onclick="calcPress('.')">.</button>
+            <button onclick="calcPress('=')">=</button>
+            <button onclick="calcPress('+')">+</button>
+        </div>
+    </div>
+
+    <!-- Угадай число -->
+    <div class="section" id="guess">
+        <p>Компьютер загадал число от 0 до 100</p>
+        <input type="number" id="guess-input" placeholder="Введите число">
+        <button onclick="guessNumber()">🎯 Угадать</button>
+        <p id="guess-result"></p>
+    </div>
+
+    <!-- Генератор паролей -->
+    <div class="section" id="password">
+        <select id="password-type">
+            <option value="letters">Буквы</option>
+            <option value="digits">Цифры</option>
+            <option value="lettersdigits">Буквы и Цифры</option>
+            <option value="all">Буквы, Цифры и Символы</option>
+        </select>
+        <button onclick="generatePassword()">🔐 Сгенерировать</button>
+        <p id="password-result"></p>
+    </div>
+
+    <!-- Часы -->
+    <div class="section" id="clock">
+        <div class="time-display" id="time-display">Загрузка...</div>
+    </div>
+
+    <script>
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+        }
+
+        // =================== Калькулятор ===================
+        let calcExpression = '';
+        function calcPress(val) {
+            if(val === '=') {
+                try {
+                    calcExpression = eval(calcExpression).toString();
+                } catch {
+                    calcExpression = 'Ошибка';
+                }
+            } else {
+                calcExpression += val;
+            }
+            document.getElementById('calc-display').value = calcExpression;
+        }
+
+        // =================== Угадай число ===================
+        let secretNumber = Math.floor(Math.random()*101);
+        function guessNumber() {
+            const input = Number(document.getElementById('guess-input').value);
+            if(isNaN(input)) return alert('Введите число!');
+            let result = '';
+            if(input < secretNumber) result = 'Больше';
+            else if(input > secretNumber) result = 'Меньше';
+            else { result = 'Ты угадал!'; secretNumber = Math.floor(Math.random()*101); }
+            document.getElementById('guess-result').textContent = result;
+        }
+
+        // =================== Генератор паролей ===================
+        function generatePassword() {
+            const type = document.getElementById('password-type').value;
+            const length = 12;
+            let chars = '';
+            if(type==='letters') chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            else if(type==='digits') chars = '0123456789';
+            else if(type==='lettersdigits') chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            else chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+[]{}|;:,.<>?';
+            let pass = '';
+            for(let i=0;i<length;i++) pass += chars[Math.floor(Math.random()*chars.length)];
+            document.getElementById('password-result').textContent = pass;
+        }
+
+        // =================== Часы ===================
+        async function updateClock() {
+            try {
+                const response = await fetch("/time");
+                const data = await response.json();
+                document.getElementById('time-display').textContent = data.time;
+            } catch(e) { console.error(e); }
+        }
+        setInterval(updateClock,1000);
+        updateClock();
+    </script>
+</body>
+</html>
